@@ -1,22 +1,24 @@
 package com.springframework.globaltimes.service.geography;
 
 import com.springframework.globaltimes.constants.ErrorMessage;
+import com.springframework.globaltimes.dto.geography.CreateCityRequest;
+import com.springframework.globaltimes.dto.geography.UpdateCityRequest;
 import com.springframework.globaltimes.entity.geography.City;
 import com.springframework.globaltimes.exception.InvalidException;
 import com.springframework.globaltimes.exception.NotFoundException;
 import com.springframework.globaltimes.repository.geography.city.CityRepository;
-import com.springframework.globaltimes.service.time.TimezoneService;
+import com.springframework.globaltimes.repository.geography.city.ContinentCityRepository;
+import com.springframework.globaltimes.repository.geography.city.CountyCityRepository;
+import com.springframework.globaltimes.repository.geography.city.IdCityRepository;
+import com.springframework.globaltimes.repository.geography.city.TimezoneCityRepository;
+import com.springframework.globaltimes.repository.time.TimezoneRepository;
+import com.springframework.globaltimes.repository.user.UserRepository;
+import com.springframework.globaltimes.utils.PageableUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import org.springframework.data.domain.Pageable;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,43 +28,26 @@ import java.util.UUID;
 public class CityService {
 
     public final CityRepository cityRepository;
+    public final TimezoneRepository timezoneRepository;
+    public final UserRepository userRepository;
 
-    public final TimezoneService timezoneService;
-    public final ContinentService continentService;
-    public final CountryService countryService;
+    public final IdCityRepository idCityRepository;
+    public final TimezoneCityRepository timezoneCityRepository;
+    public final CountyCityRepository countyCityRepository;
+    public final ContinentCityRepository continentCityRepository;
 
-    private static final String ID = "id";
-    private static final String CITY_NAME = "name";
-    private static final String COUNTRY_NAME = "country";
-    private static final String CONTINENT_NAME = "continent";
-    private static final String HIGHLIGHTED = "highlighted";
-    private static final String TIMEZONE_NAME = "timezone";
-    private static final String REGION_NAME = "region";
+    //GET BY ID
+    public City getCityById(String id){
+        log.info("Get city by id:{}",id);
+        return cityRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.NOT_FOUND.formatted("City")));
+    }
 
-    //Get By ID
-    public Map<String, Object> getCityById(String id){
+    //Get Data By ID
+    public Map<String, Object> getCityDataById(String id){
         try {
-            return cityRepository.findById(UUID.fromString(id)).map(city -> {
-                Map<String, Object> cityInfo = emptyCityInfoMap();
-                cityInfo.put(ID, city.getId().toString());
-                cityInfo.put(CITY_NAME, city.getName());
-                cityInfo.put(HIGHLIGHTED, city.getHighlighted());
-
-                //Find timezone
-                var timezone = timezoneService.getTimezoneById(city.getTimezoneId().toString());
-                cityInfo.put(TIMEZONE_NAME, timezone.getTimezoneName());
-
-                //Find country
-                var country = countryService.getCountryById(timezone.getCountryId().toString());
-                cityInfo.put(COUNTRY_NAME, country.getName());
-
-                //Find continent
-                var continent = continentService.getContinentById(country.getContinentId().toString());
-                cityInfo.put(CONTINENT_NAME, continent.getName());
-                cityInfo.put(REGION_NAME, continent.getRegionName());
-
-                return cityInfo;
-            }).orElseThrow(() -> new NotFoundException(ErrorMessage.NOT_FOUND.formatted("City")));
+            log.info("Get city data by id:{}",id);
+            return idCityRepository.findCityById(UUID.fromString(id));
         }catch (InvalidException e){
             log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
             throw e;
@@ -72,33 +57,11 @@ public class CityService {
         }
     }
 
-    public List<Map<String, Object>> getCitiesByTimezoneId(String timezoneId, int page, int size, String sort, String order){
+    //Get By TimezoneId
+    public Page<Map<String, Object>> getCitiesByTimezoneId(String timezoneId, int page, int size){
         try {
-            var pageable = createPageable(page, size, sort, order);
-
-            Page<City> cities = cityRepository.findByTimezoneId(UUID.fromString(timezoneId), pageable);
-
-            return cities.stream().map(city -> {
-                Map<String, Object> cityInfo = emptyCityInfoMap();
-                cityInfo.put(ID, city.getId().toString());
-                cityInfo.put(CITY_NAME, city.getName());
-                cityInfo.put(HIGHLIGHTED, city.getHighlighted());
-
-                //Find timezone
-                var timezone = timezoneService.getTimezoneById(city.getTimezoneId().toString());
-                cityInfo.put(TIMEZONE_NAME, timezone.getTimezoneName());
-
-                //Find country
-                var country = countryService.getCountryById(timezone.getCountryId().toString());
-                cityInfo.put(COUNTRY_NAME, country.getName());
-
-                //Find continent
-                var continent = continentService.getContinentById(country.getContinentId().toString());
-                cityInfo.put(CONTINENT_NAME, continent.getName());
-                cityInfo.put(REGION_NAME, continent.getRegionName());
-
-                return cityInfo;
-            }).toList();
+            var pageable = PageableUtils.createPageable(page, size);
+            return timezoneCityRepository.findCityByTimezoneId(UUID.fromString(timezoneId), pageable);
         }catch (InvalidException e){
             log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
             throw e;
@@ -108,43 +71,96 @@ public class CityService {
         }
     }
 
-    private Pageable createPageable(int page, int size, String sort, String order){
-        Pageable pageable;
+    //Get By CountryId
+    public Page<Map<String, Object>> getCitiesByCountryId(String countryId, int page, int size){
+        try {
+            var pageable = PageableUtils.createPageable(page, size);
+            return countyCityRepository.findCityByCountyId(UUID.fromString(countryId), pageable);
+        }catch (InvalidException e){
+            log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
+            throw e;
+        }catch (Exception e){
+            log.error(ErrorMessage.EXCEPTION_REQUEST_LOG.formatted(e.getMessage()),e);
+            throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("get cities by countryId"));
+        }
+    }
 
-        page = page <= 0 ? 1 : page - 1;
-        size = size <= 0 ? 10 : size;
+    public Page<Map<String, Object>> getCitiesByContinentId(String continentId, int page, int size){
+        try {
+            var pageable = PageableUtils.createPageable(page, size);
+            return continentCityRepository.findCityByContinentId(UUID.fromString(continentId), pageable);
+        }catch (InvalidException e){
+            log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
+            throw e;
+        }catch (Exception e){
+            log.error(ErrorMessage.EXCEPTION_REQUEST_LOG.formatted(e.getMessage()),e);
+            throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("get cities by continentId"));
+        }
+    }
 
-        if(!StringUtils.isAllBlank(sort)){
-            var orderBy = StringUtils.isBlank(order) ? Sort.Direction.ASC : Sort.Direction.valueOf(order.toUpperCase());
+    //Post city
+    public City createCity(CreateCityRequest request){
+        try {
+            var existsTimezone = timezoneRepository.existsById(request.timezoneId());
+            var existsUser = userRepository.existsById(request.lastOpId());
 
-            if(!isSortByValid(sort)){
-                throw new InvalidException(ErrorMessage.INVALID_SORT_BY.formatted(sort));
+            if(!existsTimezone){
+                throw new InvalidException("Timezone ID does not exist.");
+            }
+            if(!existsUser){
+                throw new InvalidException("LastOP ID does not exist.");
             }
 
-            pageable = PageRequest.of(page, size, orderBy, sort);
-        }else {
-            pageable = PageRequest.of(page, size);
+            var city = new City();
+            city.setTimezoneId(request.timezoneId());
+            city.setName(request.cityName());
+            city.setHighlighted(request.highlighted());
+            city.setLastOpId(request.lastOpId());
+
+            return cityRepository.save(city);
+        }catch (InvalidException e){
+            log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
+            throw e;
+        }catch (Exception e){
+            log.error(ErrorMessage.EXCEPTION_REQUEST_LOG.formatted(e.getMessage()),e);
+            throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("create city"));
         }
-
-        return pageable;
     }
 
-    private boolean isSortByValid(String sortBy){
-        return switch (sortBy){
-            case CITY_NAME, HIGHLIGHTED -> true;
-            default -> false;
-        };
-    }
+    //Update city
+    public City updateCity(String id, UpdateCityRequest request){
+        try {
+            var existsCity = getCityById(id);
+            var existsUser = userRepository.existsById(request.lastOpId());
 
-    private Map<String, Object> emptyCityInfoMap(){
-        Map<String, Object> cityInfo = new LinkedHashMap<>();
-        cityInfo.put(ID, "");
-        cityInfo.put(CITY_NAME, "");
-        cityInfo.put(COUNTRY_NAME, "");
-        cityInfo.put(CONTINENT_NAME, "");
-        cityInfo.put(HIGHLIGHTED, "");
-        cityInfo.put(TIMEZONE_NAME, "");
-        cityInfo.put(REGION_NAME, "");
-        return cityInfo;
+            if(!existsUser){
+                throw new InvalidException("LastOP ID does not exist.");
+            }
+            if (request.timezoneId() != null){
+                var existsTimezone = timezoneRepository.existsById(request.timezoneId());
+                if(!existsTimezone){
+                    throw new InvalidException("Timezone ID does not exist.");
+                }
+                existsCity.setTimezoneId(request.timezoneId());
+            }
+
+            if(request.cityName() != null){
+                existsCity.setName(request.cityName());
+            }
+            if (request.highlighted() != null){
+                existsCity.setHighlighted(request.highlighted());
+            }
+
+            existsCity.setLastOpId(request.lastOpId());
+            cityRepository.save(existsCity);
+
+            return existsCity;
+        }catch (InvalidException e){
+            log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
+            throw e;
+        }catch (Exception e){
+            log.error(ErrorMessage.EXCEPTION_REQUEST_LOG.formatted(e.getMessage()),e);
+            throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("update city"));
+        }
     }
 }
