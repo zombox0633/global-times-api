@@ -69,7 +69,6 @@ CREATE TABLE users (
 
 CREATE TABLE user_interest_groups (
 id UUID PRIMARY KEY,
-user_id UUID NOT NULL,
 group_name VARCHAR(100) NOT NULL,
 description VARCHAR(255),
 create_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
