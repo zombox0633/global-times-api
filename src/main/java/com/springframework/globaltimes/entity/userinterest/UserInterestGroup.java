@@ -23,9 +23,6 @@ public class UserInterestGroup {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "user_id")
-    private UUID userId;
-
     @Column(name = "group_name")
     private String name;
 
