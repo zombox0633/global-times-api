@@ -1,7 +1,6 @@
 package com.springframework.globaltimes.config;
 
 import com.springframework.globaltimes.auth.ApiKeyAuthFilter;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,14 +8,13 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
 
-import java.util.regex.Pattern;
+import java.util.Arrays;
 
 @Slf4j
 @Configuration
 public class SecurityConfig {
-
     private static final String[] WHITE_LIST = {
             "/actuator/**",
 
@@ -34,7 +32,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         var username = "X-API-KEY";
         var password = "secret";
-
         var filter = new ApiKeyAuthFilter(username);
         filter.setAuthenticationManager(authentication -> {
             var principal = (String) authentication.getPrincipal();
@@ -45,14 +42,14 @@ public class SecurityConfig {
             return authentication;
         });
 
-        http.csrf(csrf -> csrf.requireCsrfProtectionMatcher(new RequestMatcher() {
-            private final Pattern allowedMethods = Pattern.compile("^(GET|POST|PUT|DELETE|PATCH)$");
-
-            @Override
-            public boolean matches(HttpServletRequest request) {
-                return !allowedMethods.matcher(request.getMethod()).matches();
-            }
-        }));
+//        http.csrf(csrf -> csrf.requireCsrfProtectionMatcher(new RequestMatcher() {
+//            private final Pattern allowedMethods = Pattern.compile("^(GET|POST|PUT|DELETE|PATCH)$");
+//
+//            @Override
+//            public boolean matches(HttpServletRequest request) {
+//                return !allowedMethods.matcher(request.getMethod()).matches();
+//            }
+//        }));
 
         http.securityMatcher("/**")
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -61,8 +58,18 @@ public class SecurityConfig {
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers(BLACK_LIST).denyAll()
                         .anyRequest().authenticated()
-                );
+                )
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(request -> {
+                    var c = new CorsConfiguration();
+                    c.setAllowedOrigins(Arrays.asList("*"));
+                    c.setAllowedMethods(Arrays.asList("*"));
+                    c.setAllowedHeaders(Arrays.asList("*"));
+                    return c;
+                }));
+
 
         return http.build();
     }
+
 }
