@@ -144,7 +144,6 @@ public class UserService {
     //Update Profile
     public User updateProfile(String id, UserUpdateRequest request){
         try {
-
             if(request.name() == null && request.birthday() == null){
                 throw new InvalidException("No update information provided.");
             }

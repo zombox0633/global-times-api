@@ -32,7 +32,7 @@ public class TimezoneController {
             description = "Retrieves timezone details by its ID.")
     public Timezone getTimezoneById(@PathVariable("id") String id){return timezoneService.getTimezoneById(id); }
 
-    @GetMapping(value = "country-id/{id}")
+    @GetMapping(value = "country/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Retrieve Timezone by Country ID",
             description = "Retrieves timezone details by the ID of the country it is associated with.")

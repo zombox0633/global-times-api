@@ -2,6 +2,7 @@ package com.springframework.globaltimes.service.time;
 
 import com.springframework.globaltimes.constants.ErrorMessage;
 import com.springframework.globaltimes.dto.time.CreateTimezoneRequest;
+import com.springframework.globaltimes.dto.time.UpdateTimezoneRequest;
 import com.springframework.globaltimes.entity.time.Timezone;
 import com.springframework.globaltimes.exception.InvalidException;
 import com.springframework.globaltimes.exception.NotFoundException;
@@ -32,7 +33,7 @@ public class TimezoneService {
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.NOT_FOUND.formatted("Timezone")));
     }
 
-    //Get By ID
+    //Get By CountryId
     public Timezone getTimezoneByCountryId(String countryId){
         log.info("Get user by id:{}",countryId);
         return timezoneRepository.findByCountryId(UUID.fromString(countryId))
@@ -64,7 +65,39 @@ public class TimezoneService {
             throw e;
         }catch (Exception e){
             log.error(ErrorMessage.EXCEPTION_REQUEST_LOG.formatted(e.getMessage()),e);
-            throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("change password"));
+            throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("create timezone"));
+        }
+    }
+
+    //Update Timezone
+    public Timezone updateTimezone(String id, UpdateTimezoneRequest request){
+        try {
+            var existsTimezone = getTimezoneById(id);
+            var existsUser = userRepository.existsById(request.lastOpId());
+
+            if(!existsUser){
+                throw new InvalidException("LastOP ID does not exist.");
+            }
+            if (request.countryId() != null){
+                var existsCountry = countryRepository.existsById(request.countryId());
+                if(!existsCountry){
+                    throw new InvalidException("Timezone ID does not exist.");
+                }
+                existsTimezone.setCountryId(request.countryId());
+            }
+
+            if (request.timezoneName() != null){
+                existsTimezone.setTimezoneName(request.timezoneName());
+            }
+
+            existsTimezone.setLastOpId(request.lastOpId());
+            return existsTimezone;
+        }catch (InvalidException e){
+            log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
+            throw e;
+        }catch (Exception e){
+            log.error(ErrorMessage.EXCEPTION_REQUEST_LOG.formatted(e.getMessage()),e);
+            throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("update timezone"));
         }
     }
 
