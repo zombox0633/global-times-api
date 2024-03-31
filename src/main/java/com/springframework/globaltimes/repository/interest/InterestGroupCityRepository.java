@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface InterestGroupCityRepository extends JpaRepository<InterestGroupCity, UUID> {
     List<InterestGroupCity> findAll();
+
 }
