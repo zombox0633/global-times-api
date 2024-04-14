@@ -18,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 
@@ -85,7 +87,8 @@ public class UserService {
             }
 
             //jwt
-            var key = Jwts.SIG.HS256.key().build();
+            byte[] key = Base64.getDecoder().decode("EMk4cWOwmaaGSKKycg0GO3jCUe1Naufk");
+            var secretKey = new SecretKeySpec(key, 0, key.length, "HS256");
             var nowTimeMillis = System.currentTimeMillis();
             var expTimeMillis = nowTimeMillis + 3600000;
             var exp = new Date(expTimeMillis);
@@ -95,9 +98,9 @@ public class UserService {
                     .keyId("userGlobalTime")
                     .and()
                     .subject(user.getId().toString())
-                    .signWith(key)
-                    .expiration(exp)
+                    .signWith(secretKey)
                     .issuedAt(new Date())
+                    .expiration(exp)
                     .compact();
 
         }catch (InvalidException e){

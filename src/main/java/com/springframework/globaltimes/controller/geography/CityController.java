@@ -1,5 +1,6 @@
 package com.springframework.globaltimes.controller.geography;
 
+import com.springframework.globaltimes.entity.geography.City;
 import com.springframework.globaltimes.service.geography.CityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -28,6 +30,14 @@ public class CityController {
     @Operation(summary = "Retrieve City by ID",
             description = "Retrieves detailed information about a city based on the given city ID.")
     public Map<String,Object> getCityById(@PathVariable String id){ return cityService.getCityDataById(id);}
+
+    @GetMapping(value = "/search")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Retrieve City by Search City Name",
+            description = "")
+    public Page<City> getAllCityWithSearch(@RequestParam("name") String name, @RequestParam("page") int page, @RequestParam("size") int size){
+        return cityService.getAllCityWithSearch(name, page, size);
+    }
 
     @GetMapping(value = "/timezone")
     @ResponseStatus(HttpStatus.OK)

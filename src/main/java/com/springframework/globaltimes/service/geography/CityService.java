@@ -7,6 +7,7 @@ import com.springframework.globaltimes.entity.geography.City;
 import com.springframework.globaltimes.exception.InvalidException;
 import com.springframework.globaltimes.exception.NotFoundException;
 import com.springframework.globaltimes.repository.geography.city.CityRepository;
+import com.springframework.globaltimes.repository.geography.city.CitySpecifications;
 import com.springframework.globaltimes.repository.geography.city.ContinentCityRepository;
 import com.springframework.globaltimes.repository.geography.city.CountyCityRepository;
 import com.springframework.globaltimes.repository.geography.city.IdCityRepository;
@@ -17,8 +18,10 @@ import com.springframework.globaltimes.utils.PageableUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,6 +29,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CityService {
+    private final CitySpecifications citySpecifications;
 
     public final CityRepository cityRepository;
     public final TimezoneRepository timezoneRepository;
@@ -41,6 +45,13 @@ public class CityService {
         log.info("Get city by id:{}",id);
         return cityRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.NOT_FOUND.formatted("City")));
+    }
+
+    public Page<City> getAllCityWithSearch( String cityName, int page, int size ){
+        Specification<City> spec = Specification.where(citySpecifications.nameLike(cityName));
+        var pageable = PageableUtils.createPageable(page, size);
+
+        return cityRepository.findAll(spec, pageable);
     }
 
     //Get Data By ID
