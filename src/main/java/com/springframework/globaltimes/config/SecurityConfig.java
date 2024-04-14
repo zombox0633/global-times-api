@@ -62,9 +62,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(request -> {
                     var c = new CorsConfiguration();
-                    c.setAllowedOrigins(Arrays.asList("*"));
-                    c.setAllowedMethods(Arrays.asList("*"));
-                    c.setAllowedHeaders(Arrays.asList("*"));
+                    c.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+                    c.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    c.setAllowedHeaders(Arrays.asList("X-API-KEY", "Content-Type"));
+                    c.setAllowCredentials(true);
                     return c;
                 }));
 
