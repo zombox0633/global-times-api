@@ -16,6 +16,7 @@ public interface ContinentCityRepository extends CityRepository{
             + "INNER JOIN timezones tz ON tz.id = ci.timezones_id "
             + "INNER JOIN countries co ON co.id = tz.country_id "
             + "INNER JOIN continents ct ON ct.id = co.continent_id "
-            + "WHERE ct.id = %:continentId% ", nativeQuery = true)
+            + "WHERE ct.id = %:continentId% "
+            + "ORDER BY ci.id, ci.city_name, co.country_name, ct.continent_name, ci.highlighted, tz.timezone_name, ct.region_name " , nativeQuery = true)
     Page<Map<String, Object>> findCityByContinentId(UUID continentId, Pageable pageable);
 }

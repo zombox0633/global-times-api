@@ -6,6 +6,7 @@ import com.springframework.globaltimes.dto.geography.UpdateCityRequest;
 import com.springframework.globaltimes.entity.geography.City;
 import com.springframework.globaltimes.exception.InvalidException;
 import com.springframework.globaltimes.exception.NotFoundException;
+import com.springframework.globaltimes.repository.geography.city.CityNameRepository;
 import com.springframework.globaltimes.repository.geography.city.CityRepository;
 import com.springframework.globaltimes.repository.geography.city.CitySpecifications;
 import com.springframework.globaltimes.repository.geography.city.ContinentCityRepository;
@@ -15,6 +16,7 @@ import com.springframework.globaltimes.repository.geography.city.TimezoneCityRep
 import com.springframework.globaltimes.repository.time.TimezoneRepository;
 import com.springframework.globaltimes.repository.user.UserRepository;
 import com.springframework.globaltimes.utils.PageableUtils;
+import com.springframework.globaltimes.utils.StringFormatted;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +34,7 @@ public class CityService {
     private final CitySpecifications citySpecifications;
 
     public final CityRepository cityRepository;
+    public final CityNameRepository cityNameRepository;
     public final TimezoneRepository timezoneRepository;
     public final UserRepository userRepository;
 
@@ -48,7 +51,8 @@ public class CityService {
     }
 
     public Page<City> getAllCityWithSearch( String cityName, int page, int size ){
-        Specification<City> spec = Specification.where(citySpecifications.nameLike(cityName));
+        var formattedCityName = StringFormatted.slugToText(cityName);
+        Specification<City> spec = Specification.where(citySpecifications.nameLike(formattedCityName));
         var pageable = PageableUtils.createPageable(page, size);
 
         return cityRepository.findAll(spec, pageable);
@@ -65,6 +69,20 @@ public class CityService {
         }catch (Exception e){
             log.error(ErrorMessage.EXCEPTION_REQUEST_LOG.formatted(e.getMessage()),e);
             throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("get city by id"));
+        }
+    }
+
+    //Get By CityName
+    public Map<String, Object> getCityByName(String cityName){
+        try {
+            var formattedCityName = StringFormatted.slugToText(cityName);
+            return cityNameRepository.findCityByName(formattedCityName);
+        }catch (InvalidException e){
+            log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
+            throw e;
+        }catch (Exception e){
+            log.error(ErrorMessage.EXCEPTION_REQUEST_LOG.formatted(e.getMessage()),e);
+            throw new InvalidException(ErrorMessage.FAILED_LOG.formatted("get city by cityName"));
         }
     }
 

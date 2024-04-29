@@ -21,6 +21,8 @@ public interface InterestGroupRepository extends JpaRepository<InterestGroup, UU
             "INNER JOIN timezones tz ON tz.id = ci.timezones_id " +
             "INNER JOIN countries co ON co.id = tz.country_id " +
             "INNER JOIN continents ct ON ct.id = co.continent_id " +
-            "WHERE ig.id = %:id% ", nativeQuery = true)
+            "WHERE ig.id = %:id% " +
+            "ORDER BY ic.id, ci.id, ci.city_name, co.country_name, ct.continent_name, ci.highlighted, tz.timezone_name, ct.region_name "
+            , nativeQuery = true)
     Page<Map<String, Object>> findInterestGroupDataById(UUID id, Pageable pageable);
 }

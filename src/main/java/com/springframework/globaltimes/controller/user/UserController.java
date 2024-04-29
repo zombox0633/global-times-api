@@ -42,12 +42,12 @@ public class UserController {
         return userService.authenticateUser(request);
     }
 
-    @GetMapping(value = "/register")
+    @GetMapping(value = "/profile")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Register User",
+    @Operation(summary = "Profile User",
             description = "Registers a new user with the given details such as username, email, and password. Returns the registered user's information.")
     public User getRegister(@Valid @RequestBody UseRegisterRequest request){
-        return userService.getRegister(request);
+        return userService.getUserProfile(request);
     }
 
     @PostMapping(value = "")

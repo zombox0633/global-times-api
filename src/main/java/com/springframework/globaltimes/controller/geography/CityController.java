@@ -20,7 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/v1/city")
 @RequiredArgsConstructor
-@Tag(name = "City", description = "APIs for managing user data.")
+@Tag(name = "City", description = "APIs for managing city data.")
 public class CityController {
 
     private final CityService cityService;
@@ -35,8 +35,16 @@ public class CityController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Retrieve City by Search City Name",
             description = "")
-    public Page<City> getAllCityWithSearch(@RequestParam("name") String name, @RequestParam("page") int page, @RequestParam("size") int size){
+    public Page<City> getCityWithSearch(@RequestParam("name") String name, @RequestParam("page") int page, @RequestParam("size") int size){
         return cityService.getAllCityWithSearch(name, page, size);
+    }
+
+    @GetMapping(value = "/name/{name}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Retrieve City by City Name",
+            description = "Provides an API to search for city details from a city name parameter passed in the path.")
+    public Map<String, Object> getCityByCityName(@PathVariable("name") String name){
+        return cityService.getCityByName(name);
     }
 
     @GetMapping(value = "/timezone")

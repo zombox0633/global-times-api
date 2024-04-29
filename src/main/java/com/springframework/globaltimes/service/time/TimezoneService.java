@@ -6,7 +6,7 @@ import com.springframework.globaltimes.dto.time.UpdateTimezoneRequest;
 import com.springframework.globaltimes.entity.time.Timezone;
 import com.springframework.globaltimes.exception.InvalidException;
 import com.springframework.globaltimes.exception.NotFoundException;
-import com.springframework.globaltimes.repository.geography.CountryRepository;
+import com.springframework.globaltimes.repository.geography.country.CountryRepository;
 import com.springframework.globaltimes.repository.time.TimezoneRepository;
 import com.springframework.globaltimes.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;

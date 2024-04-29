@@ -1,4 +1,4 @@
-package com.springframework.globaltimes.repository.geography;
+package com.springframework.globaltimes.repository.geography.continent;
 
 import com.springframework.globaltimes.entity.geography.Continent;
 import org.springframework.data.jpa.repository.JpaRepository;
