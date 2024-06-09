@@ -7,8 +7,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class CitySpecifications {
     public Specification<City> nameLike(String name){
-        return ((root, query, criteriaBuilder) -> criteriaBuilder
-                .like(criteriaBuilder.lower(root.get("name")), "%"+name.toLowerCase()+"%")
+        return ((root, query, criteriaBuilder) -> {
+            query.orderBy(criteriaBuilder.asc(root.get("name")));
+            return  criteriaBuilder
+                    .like(criteriaBuilder.lower(root.get("name")),  name.toLowerCase() + "%");
+        }
         );
     }
 }
