@@ -8,10 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 @UtilityClass
 public class StringFormatted {
     public static String slugToText(String text){
-        if (text == null){
+        if (text == null || text.trim().isEmpty()){
             log.error("Attempted to convert null slug to text.");
             throw new IllegalArgumentException("Slug cannot be null");
         }
-        return text.trim().replace("-", " ").toLowerCase();
+        return text.trim().replace("-", " ").replace("_", ".").toLowerCase();
     }
 }
