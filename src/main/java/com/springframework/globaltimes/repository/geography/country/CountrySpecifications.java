@@ -8,8 +8,12 @@ import org.springframework.stereotype.Component;
 public class CountrySpecifications {
 
     public Specification<Country> nameLike(String name){
-        return ((root, query, criteriaBuilder) -> criteriaBuilder
-                .like(criteriaBuilder.lower(root.get("name")), "%"+name.toLowerCase()+"%")
+        return ((root, query, criteriaBuilder) -> {
+            query.orderBy(criteriaBuilder.asc(root.get("name")));
+            return  criteriaBuilder
+                    .like(criteriaBuilder.lower(root.get("name")),  name.toLowerCase() + "%");
+        }
         );
     }
+
 }
