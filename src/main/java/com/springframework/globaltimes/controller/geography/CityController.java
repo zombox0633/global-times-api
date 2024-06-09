@@ -39,11 +39,11 @@ public class CityController {
         return cityService.getAllCityWithSearch(name, page, size);
     }
 
-    @GetMapping(value = "/name/{name}")
+    @GetMapping(value = "/name")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Retrieve City by City Name",
             description = "Provides an API to search for city details from a city name parameter passed in the path.")
-    public Map<String, Object> getCityByCityName(@PathVariable("name") String name){
+    public List<Map<String, Object>> getCityByCityName(@RequestParam("name") List<String> name){
         return cityService.getCityByName(name);
     }
 

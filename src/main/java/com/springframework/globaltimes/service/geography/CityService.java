@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -51,7 +52,7 @@ public class CityService {
     }
 
     public Page<City> getAllCityWithSearch( String cityName, int page, int size ){
-        var formattedCityName = StringFormatted.slugToText(cityName);
+        var formattedCityName = StringFormatted.slugToText(cityName); 
         Specification<City> spec = Specification.where(citySpecifications.nameLike(formattedCityName));
         var pageable = PageableUtils.createPageable(page, size);
 
@@ -73,9 +74,9 @@ public class CityService {
     }
 
     //Get By CityName
-    public Map<String, Object> getCityByName(String cityName){
+    public List<Map<String, Object>> getCityByName(List<String> cityName){
         try {
-            var formattedCityName = StringFormatted.slugToText(cityName);
+            var formattedCityName = cityName.stream().map(StringFormatted::slugToText).toList();
             return cityNameRepository.findCityByName(formattedCityName);
         }catch (InvalidException e){
             log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
