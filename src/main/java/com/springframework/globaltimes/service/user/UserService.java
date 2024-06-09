@@ -12,12 +12,15 @@ import com.springframework.globaltimes.repository.user.UserRepository;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,7 +41,7 @@ public class UserService {
     }
 
     //Get Authentication
-    public String authenticateUser(UserRequest request){
+    public ResponseEntity<Map<String, String>> authenticateUser(UserRequest request){
         try {
             var checkEmail = userRepository.findByEmail(request.email());
             if (checkEmail.isEmpty()){
@@ -58,7 +61,7 @@ public class UserService {
             var expTimeMillis = nowTimeMillis + 3600000;
             var exp = new Date(expTimeMillis);
 
-            return Jwts.builder()
+            String jwt = Jwts.builder()
                     .header()
                     .keyId("userGlobalTime")
                     .and()
@@ -67,6 +70,11 @@ public class UserService {
                     .issuedAt(new Date())
                     .expiration(exp)
                     .compact();
+
+            Map<String, String> response = new HashMap<>();
+            response.put("jwt",jwt);
+
+            return ResponseEntity.ok(response);
 
         }catch (InvalidException e){
             log.error(ErrorMessage.INVALID_REQUEST_LOG.formatted(e.getMessage()), e);
